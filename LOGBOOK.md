@@ -36,3 +36,10 @@
 - **Status**: Accepted
 - **Context**: User needs continuous terminal and web visibility into agent thoughts, search events, and synthesis progress.
 - **Decision**: Implement Server-Sent Events (`POST /api/research`) streaming strongly-typed `AgentEvent` payloads. Client renders agent timeline and streams report tokens live.
+
+### ADR-006: Dual-Modal Runtime: Terminal CLI & Web Application
+- **Date**: 2026-10-24
+- **Status**: Accepted
+- **Context**: User explicitly requested running the research agent directly in the user terminal as well as having a web interface.
+- **Decision**: Implemented `bin/cli.ts` executed via `tsx` (`npm run cli` / `npm run research`). Features ANSI-styled stage outputs, token-by-token stdout report streaming, interactive prompt mode, query arg mode, zero-dependency `.env` parsing, and automatic disk persistence to `reports/report-<slug>-<timestamp>.md`.
+

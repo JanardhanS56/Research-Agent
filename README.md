@@ -68,15 +68,46 @@ Query → Planner → Searcher → Synthesizer → Reporter
 
 ---
 
+## Quick Start
+
+### 1. Terminal CLI (Interactive or Direct)
+
+Run directly in your terminal with real-time agent output:
+
+```bash
+# Interactive prompt
+npm run cli
+
+# Direct query
+npm run cli -- "What are the latest breakthroughs in quantum computing?"
+```
+
+Generated reports are automatically formatted and exported to `reports/report-<slug>-<timestamp>.md`.
+
+### 2. Web UI
+
+Launch the dark glassmorphism web dashboard:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
 ## Available Scripts
 
 ```bash
-npm run dev       # Start Next.js dev server
-npm run build     # Production build
-npm run lint      # ESLint check
-npm test          # Vitest unit tests
+npm run cli        # Run Terminal CLI (interactive or query arg)
+npm run research   # Alias for npm run cli
+npm run dev        # Start Next.js dev server on http://localhost:3000
+npm run build      # Production Next.js build
+npm run lint       # ESLint check
+npm test           # Vitest unit test suite
 npm run type-check # TypeScript strict check
 ```
+
 
 ---
 
