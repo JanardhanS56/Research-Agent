@@ -4,7 +4,7 @@ import { useState } from "react";
 import QueryForm from "./components/QueryForm";
 import AgentTimeline from "./components/AgentTimeline";
 import ReportViewer from "./components/ReportViewer";
-import type { AgentEvent, SubQuery, SearchBundle, Synthesis } from "./lib/types";
+import type { AgentEvent, SubQuery } from "./lib/types";
 
 export interface AgentStep {
   id: string;
@@ -45,7 +45,7 @@ export default function Home() {
       query,
       subQueries: [],
       steps: [
-        { id: "plan", kind: "plan", label: "Planning research strategy…", status: "running" },
+        { id: "plan", kind: "plan", label: "Decomposing query into sub-questions", status: "running" },
       ],
       report: "",
     });
@@ -57,7 +57,7 @@ export default function Home() {
         body: JSON.stringify({ query }),
       });
 
-      if (!res.body) throw new Error("No response body");
+      if (!res.body) throw new Error("Connection failed: no response stream");
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -90,23 +90,24 @@ export default function Home() {
               const searchSteps: AgentStep[] = subQueries.map((sq) => ({
                 id: `search-${sq.id}`,
                 kind: "search_start",
-                label: `Searching: ${sq.query}`,
+                label: `Web retrieval: "${sq.query}"`,
                 status: "pending",
               }));
               const synthSteps: AgentStep[] = subQueries.map((sq) => ({
                 id: `synth-${sq.id}`,
                 kind: "synthesis_chunk",
-                label: `Synthesising: ${sq.query}`,
+                label: `Synthesizing evidence: "${sq.query}"`,
                 status: "pending",
               }));
+
               setState((prev) => ({
                 ...prev,
                 subQueries,
                 steps: [
-                  { ...prev.steps[0], status: "done", detail: `${subQueries.length} sub-queries planned` },
+                  { id: "plan", kind: "plan", label: "Decomposing query into sub-questions", status: "done" },
                   ...searchSteps,
                   ...synthSteps,
-                  { id: "report", kind: "report_chunk", label: "Compiling final report…", status: "pending" },
+                  { id: "report", kind: "report_chunk", label: "Compiling cited research document", status: "pending" },
                 ],
               }));
               break;
@@ -119,20 +120,25 @@ export default function Home() {
             }
 
             case "search_done": {
-              const { bundle } = event.payload as { bundle: SearchBundle };
+              const { bundle } = event.payload as { bundle: { queryId: string; results: Array<{ title: string; url: string }> } };
               updateStep(`search-${bundle.queryId}`, {
                 status: "done",
-                detail: `${bundle.results.length} sources found`,
+                detail: `${bundle.results.length} sources retrieved`,
               });
               updateStep(`synth-${bundle.queryId}`, { status: "running" });
               break;
             }
 
+            case "synthesis_chunk": {
+              // Internal token stream update
+              break;
+            }
+
             case "synthesis_done": {
-              const { synthesis } = event.payload as { synthesis: Synthesis };
+              const { synthesis } = event.payload as { synthesis: { queryId: string; citations: Array<{ url: string }> } };
               updateStep(`synth-${synthesis.queryId}`, {
                 status: "done",
-                detail: `${synthesis.citations.length} citations`,
+                detail: `${synthesis.citations.length} cited reference(s)`,
               });
               break;
             }
@@ -146,7 +152,7 @@ export default function Home() {
             }
 
             case "done": {
-              updateStep("report", { status: "done", detail: "Report complete" });
+              updateStep("report", { status: "done" });
               setState((prev) => ({ ...prev, status: "done" }));
               break;
             }
@@ -169,43 +175,52 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen relative overflow-hidden">
-      {/* Background gradient orbs */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[100px]" />
-        <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] rounded-full bg-cyan-600/5 blur-[80px]" />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-6">
-            <span className="w-2 h-2 rounded-full bg-blue-400 pulse-dot inline-block" />
-            Powered by NVIDIA Nemotron-3.5-bolt
+    <div className="min-h-screen flex flex-col bg-[#0b0c0e] text-zinc-100 font-sans">
+      {/* Top Application Bar */}
+      <header className="border-b border-[#20222a] bg-[#101216] px-4 py-2.5">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="font-mono font-semibold text-sm tracking-wide text-zinc-100">
+              RESEARCH AGENT
+            </span>
+            <span className="text-[11px] font-mono text-zinc-500 px-1.5 py-0.5 rounded border border-[#262832] bg-[#16181e]">
+              nemotron-3.5-bolt
+            </span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">
-            <span className="gradient-text">Research Agent</span>
-          </h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            Drop a research question. The agent plans, searches the web, synthesises sources,
-            and delivers a fully cited report — live.
-          </p>
-        </header>
 
-        {/* Query Form */}
+          <div className="flex items-center gap-4 text-xs font-mono text-zinc-500">
+            <span className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${state.status === "researching" ? "bg-amber-400" : "bg-emerald-400"}`} />
+              {state.status === "researching" ? "Pipeline active" : "Engine ready"}
+            </span>
+            <span className="hidden sm:inline text-zinc-700">|</span>
+            <span className="hidden sm:inline">DuckDuckGo / Brave</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Workspace */}
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
+        {/* Compact Workspace Header */}
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-100 tracking-tight">
+            Autonomous Deep Research
+          </h1>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Plans search matrices, parses live web sources, and compiles verified Markdown briefs with citations.
+          </p>
+        </div>
+
+        {/* Query Input */}
         <QueryForm
           onSubmit={handleSubmit}
           isLoading={state.status === "researching"}
         />
 
-        {/* Main Content */}
+        {/* Active Investigation Area */}
         {state.status !== "idle" && (
-          <div className="mt-10 grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6 animate-fade-in">
-            {/* Left: Timeline */}
+          <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 pt-2">
             <AgentTimeline steps={state.steps} subQueries={state.subQueries} />
-
-            {/* Right: Report */}
             <ReportViewer
               report={state.report}
               status={state.status}
@@ -214,7 +229,7 @@ export default function Home() {
             />
           </div>
         )}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

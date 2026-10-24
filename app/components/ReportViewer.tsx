@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ResearchState } from "../page";
@@ -16,21 +17,38 @@ function downloadMarkdown(content: string, query: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `research-${query.slice(0, 40).replace(/[^a-z0-9]/gi, "-").toLowerCase()}.md`;
+  const slug = query
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .slice(0, 40)
+    .replace(/^-|-$/g, "");
+  a.download = `research-${slug || "report"}-${Date.now()}.md`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
 export default function ReportViewer({ report, status, error, query }: Props) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(report);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  const wordCount = report ? report.trim().split(/\s+/).filter(Boolean).length : 0;
+
   if (error) {
     return (
-      <div className="glass rounded-2xl p-8 flex flex-col items-center justify-center gap-4 min-h-[300px]">
-        <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-2xl">
-          ❌
-        </div>
-        <div className="text-center">
-          <p className="font-semibold text-red-400 mb-1">Research Failed</p>
-          <p className="text-sm text-slate-500 max-w-md">{error}</p>
+      <div className="panel p-6 border-rose-900/40 bg-rose-950/10 text-rose-300">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <h3 className="text-sm font-semibold text-rose-200">Execution Terminated</h3>
+            <p className="mt-1 text-xs text-rose-300/80 font-mono break-all">{error}</p>
+          </div>
         </div>
       </div>
     );
@@ -38,71 +56,66 @@ export default function ReportViewer({ report, status, error, query }: Props) {
 
   if (!report) {
     return (
-      <div className="glass rounded-2xl p-8 flex flex-col items-center justify-center gap-5 min-h-[300px]">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center text-2xl">🔭</div>
+      <div className="panel p-8 flex flex-col items-center justify-center min-h-[360px] text-center">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="w-2 h-2 rounded-sm bg-amber-400 animate-pulse" />
+          <span className="font-mono text-xs uppercase tracking-wider text-zinc-400">
+            Synthesizing Live Pipeline
+          </span>
         </div>
-        <div className="text-center">
-          <p className="font-medium text-slate-300 mb-1">Agent is researching…</p>
-          <p className="text-sm text-slate-500 max-w-xs">Searching, reading, and synthesising sources. This takes 30–60 seconds.</p>
-        </div>
-        <div className="flex gap-1.5">
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className="w-1.5 h-1.5 rounded-full bg-blue-400"
-              style={{ animation: `pulseDot 1.5s ease-in-out ${i * 0.3}s infinite` }}
-            />
-          ))}
-        </div>
+        <p className="text-sm text-zinc-300 max-w-sm mb-1">
+          Decomposing query, querying web indices, and compiling citations.
+        </p>
+        <p className="text-xs text-zinc-500 font-mono">
+          Model: nvidia/nemotron-3.5-bolt-e4b (Chain-of-Thought)
+        </p>
       </div>
     );
   }
 
+  const isStreaming = status === "researching";
+
   return (
-    <div className="glass rounded-2xl overflow-hidden flex flex-col">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <span className="text-base">📄</span>
-          <span className="text-sm font-medium text-slate-300">Research Report</span>
-          {status === "researching" && (
-            <span className="flex items-center gap-1.5 ml-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 pulse-dot inline-block" />
-              Streaming…
-            </span>
-          )}
-          {status === "done" && (
-            <span className="ml-2 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-xs text-green-400">
-              Complete
+    <article className="panel">
+      {/* Top Meta Bar */}
+      <div className="panel-header flex flex-wrap items-center justify-between gap-2 border-b border-[#22252e]">
+        <div className="flex items-center gap-3">
+          <span className="text-zinc-300">Investigation Brief</span>
+          <span className="text-zinc-600">|</span>
+          <span className="text-[11px] font-mono text-zinc-500">{wordCount} words</span>
+          {isStreaming && (
+            <span className="flex items-center gap-1.5 text-amber-400 text-[11px] font-mono">
+              <span className="w-1.5 h-1.5 rounded-sm bg-amber-400 animate-pulse" />
+              Streaming tokens…
             </span>
           )}
         </div>
-        {status === "done" && report && (
+
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => downloadMarkdown(report, query)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
-              bg-surface-700 hover:bg-surface-600 border border-white/5 hover:border-white/10
-              text-slate-300 hover:text-white transition-all duration-150"
+            type="button"
+            onClick={handleCopy}
+            className="px-2.5 py-1 rounded border border-[#262832] bg-[#16181e] hover:bg-[#1f222a] text-zinc-300 text-xs font-mono transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Download .md
+            {copied ? "Copied" : "Copy Raw"}
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => downloadMarkdown(report, query)}
+            className="px-2.5 py-1 rounded border border-[#262832] bg-[#16181e] hover:bg-[#1f222a] text-zinc-300 text-xs font-mono transition-colors"
+          >
+            Export .md
+          </button>
+        </div>
       </div>
 
-      {/* Report Content */}
-      <div className="flex-1 p-6 overflow-auto max-h-[80vh]">
-        <div className="report-content">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
-        </div>
-        {status === "researching" && (
-          <span className="inline-block w-0.5 h-5 bg-blue-400 ml-0.5 animate-pulse align-middle" />
-        )}
+      {/* Document Content */}
+      <div className="p-6 md:p-8 report-content">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {report}
+        </ReactMarkdown>
+        {isStreaming && <span className="terminal-cursor" />}
       </div>
-    </div>
+    </article>
   );
 }

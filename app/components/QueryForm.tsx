@@ -7,99 +7,111 @@ interface Props {
   isLoading: boolean;
 }
 
-const SUGGESTIONS = [
-  "What are the latest breakthroughs in quantum computing?",
-  "How does CRISPR gene editing work and what are its ethical implications?",
-  "Explain the current state of fusion energy research",
-  "What is the impact of microplastics on human health?",
+const BENCHMARK_TOPICS = [
+  "Quantum error mitigation vs fault-tolerant thresholds in superconducting qubits",
+  "CRISPR-Cas9 off-target cleavage reduction strategies",
+  "Sodium-ion battery cathode degradation mechanisms at high voltages",
+  "Comparative benchmarks of open-weights reasoning LLMs against proprietary models",
 ];
 
 export default function QueryForm({ onSubmit, isLoading }: Props) {
   const [query, setQuery] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  function handleSubmit(e?: FormEvent) {
+    if (e) e.preventDefault();
     if (!query.trim() || isLoading) return;
     onSubmit(query.trim());
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
-      if (!query.trim() || isLoading) return;
-      onSubmit(query.trim());
+      handleSubmit();
     }
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <form onSubmit={handleSubmit} id="research-form">
-        <div className="glass glow-blue rounded-2xl p-1 gradient-border">
-          <div className="flex flex-col gap-0 rounded-xl overflow-hidden bg-surface-800">
-            <textarea
-              ref={textareaRef}
-              id="research-query"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything that needs deep research…"
-              disabled={isLoading}
-              rows={3}
-              className="w-full bg-transparent px-5 pt-5 pb-3 text-slate-200 placeholder-slate-500 resize-none outline-none text-base leading-relaxed"
-            />
-            <div className="flex items-center justify-between px-5 py-3 border-t border-white/5">
-              <span className="text-xs text-slate-500">
-                {isLoading ? (
-                  <span className="flex items-center gap-2 text-blue-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 pulse-dot inline-block" />
-                    Agent is researching…
-                  </span>
-                ) : (
-                  "Shift+Enter for new line · Enter to research"
-                )}
+    <div className="w-full">
+      <form onSubmit={handleSubmit} id="research-form" className="panel p-3">
+        <div className="relative">
+          <textarea
+            ref={textareaRef}
+            id="research-query"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter research topic, technical inquiry, or hypothesis to investigate…"
+            disabled={isLoading}
+            rows={3}
+            className="w-full bg-transparent px-3 py-2 text-zinc-100 placeholder-zinc-500 resize-none outline-none text-sm leading-relaxed font-mono"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 mt-1 border-t border-[#22252e]">
+          <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
+            {isLoading ? (
+              <span className="flex items-center gap-2 text-amber-400">
+                <span className="inline-block w-2 h-2 rounded-sm bg-amber-400 animate-pulse" />
+                Pipeline active: gathering & synthesizing sources
               </span>
+            ) : (
+              <span>
+                Press <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 text-[10px]">Ctrl+Enter</kbd> to execute
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {query.trim() && !isLoading && (
               <button
-                type="submit"
-                disabled={isLoading || !query.trim()}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200
-                  bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500
-                  text-white disabled:opacity-40 disabled:cursor-not-allowed
-                  shadow-lg shadow-blue-900/30 hover:shadow-blue-800/40"
+                type="button"
+                onClick={() => setQuery("")}
+                className="px-2.5 py-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
               >
-                {isLoading ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Researching
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    Research
-                  </>
-                )}
+                Clear
               </button>
-            </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading || !query.trim()}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Processing
+                </>
+              ) : (
+                <>
+                  <span>Run Investigation</span>
+                  <span className="text-[10px] text-zinc-500">→</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </form>
 
-      {/* Suggestions */}
+      {/* Preset Topics */}
       {!isLoading && (
-        <div className="mt-4 flex flex-wrap gap-2 justify-center animate-fade-in">
-          {SUGGESTIONS.map((s) => (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="text-zinc-500 text-[11px] font-mono mr-1">Presets:</span>
+          {BENCHMARK_TOPICS.map((topic, i) => (
             <button
-              key={s}
-              onClick={() => { setQuery(s); textareaRef.current?.focus(); }}
-              className="px-3 py-1.5 rounded-full text-xs text-slate-400 bg-surface-700 border border-white/5
-                hover:border-blue-500/30 hover:text-blue-300 transition-all duration-150"
+              key={i}
+              type="button"
+              onClick={() => {
+                setQuery(topic);
+                textareaRef.current?.focus();
+              }}
+              className="px-2 py-1 rounded border border-[#23262f] bg-[#121418] hover:border-zinc-600 text-zinc-400 hover:text-zinc-200 text-[11px] transition-colors"
             >
-              {s.length > 55 ? s.slice(0, 55) + "…" : s}
+              {topic.length > 45 ? topic.slice(0, 45) + "…" : topic}
             </button>
           ))}
         </div>
