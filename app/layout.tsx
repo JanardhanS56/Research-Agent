@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Research Agent — AI-Powered Deep Research",
+  title: "Research Agent — Autonomous Deep Research Engine",
   description:
-    "Autonomous AI research assistant powered by NVIDIA Nemotron. Plans, searches, synthesises, and reports — in real-time.",
+    "Multi-agent research engine powered by NVIDIA Nemotron-3.5-Bolt. Decomposes inquiries, crawls live web sources, and compiles cited Markdown briefs.",
 };
 
 export default function RootLayout({

@@ -8,81 +8,101 @@ interface Props {
   subQueries: SubQuery[];
 }
 
-const KIND_ICON: Record<string, string> = {
-  plan: "🧠",
-  search_start: "🔍",
-  search_done: "🔍",
-  synthesis_chunk: "⚗️",
-  synthesis_done: "⚗️",
-  report_chunk: "📄",
-  done: "✅",
-  error: "❌",
-};
+function StepStatusIcon({ status }: { status: AgentStep["status"] }) {
+  if (status === "running") {
+    return (
+      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+        <svg className="w-3.5 h-3.5 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+      </span>
+    );
+  }
 
-const STATUS_COLOR: Record<AgentStep["status"], string> = {
-  pending: "border-white/10 bg-white/5 text-slate-500",
-  running: "border-blue-500/50 bg-blue-500/10 text-blue-300",
-  done: "border-green-500/40 bg-green-500/8 text-green-300",
-  error: "border-red-500/40 bg-red-500/8 text-red-300",
-};
+  if (status === "done") {
+    return (
+      <span className="w-4 h-4 flex items-center justify-center shrink-0 text-emerald-400">
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+      </span>
+    );
+  }
 
-const STATUS_DOT: Record<AgentStep["status"], string> = {
-  pending: "bg-slate-600",
-  running: "bg-blue-400 pulse-dot",
-  done: "bg-green-400",
-  error: "bg-red-400",
-};
+  if (status === "error") {
+    return (
+      <span className="w-4 h-4 flex items-center justify-center shrink-0 text-rose-400">
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </span>
+    );
+  }
+
+  return (
+    <span className="w-4 h-4 flex items-center justify-center shrink-0">
+      <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+    </span>
+  );
+}
 
 export default function AgentTimeline({ steps, subQueries }: Props) {
   return (
-    <aside className="glass rounded-2xl p-5 h-fit sticky top-6">
-      <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-5 flex items-center gap-2">
-        <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        Agent Pipeline
-      </h2>
+    <aside className="panel h-fit sticky top-4">
+      <div className="panel-header flex items-center justify-between">
+        <span>Execution Trace</span>
+        <span className="text-[11px] font-mono text-zinc-500 lowercase">
+          {steps.filter((s) => s.status === "done").length}/{steps.length} steps
+        </span>
+      </div>
 
-      {subQueries.length > 0 && (
-        <div className="mb-5 p-3 rounded-xl bg-blue-500/5 border border-blue-500/15">
-          <p className="text-xs font-medium text-blue-300 mb-2">Research plan</p>
-          <ul className="space-y-1.5">
-            {subQueries.map((sq, i) => (
-              <li key={sq.id} className="flex gap-2 text-xs text-slate-400">
-                <span className="text-blue-400 font-mono shrink-0">{i + 1}.</span>
-                <span className="leading-relaxed">{sq.query}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="relative space-y-2">
-        {steps.map((step, i) => (
-          <div
-            key={step.id}
-            className={`relative flex gap-3 p-3 rounded-xl border transition-all duration-300 animate-slide-in ${STATUS_COLOR[step.status]}`}
-            style={{ animationDelay: `${i * 50}ms` }}
-          >
-            <div className="relative shrink-0 mt-0.5">
-              <span className="text-base">{KIND_ICON[step.kind] ?? "•"}</span>
-              <span
-                className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-surface-800 ${STATUS_DOT[step.status]}`}
-              />
+      <div className="p-3 space-y-3">
+        {/* Sub-Queries Plan */}
+        {subQueries.length > 0 && (
+          <div className="p-2.5 rounded border border-[#23262f] bg-[#111317]">
+            <div className="text-[11px] font-mono font-medium text-zinc-400 uppercase tracking-wider mb-2">
+              Query Matrix ({subQueries.length})
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium leading-snug truncate">{step.label}</p>
-              {step.detail && (
-                <p className="text-xs opacity-70 mt-0.5">{step.detail}</p>
-              )}
-              {step.status === "running" && (
-                <div className="mt-1.5 h-0.5 rounded-full bg-blue-400/20 overflow-hidden">
-                  <div className="h-full w-1/2 bg-blue-400/60 shimmer rounded-full" />
+            <div className="space-y-1.5">
+              {subQueries.map((sq, idx) => (
+                <div key={sq.id} className="text-xs font-mono">
+                  <div className="flex items-start gap-1.5 text-zinc-300">
+                    <span className="text-zinc-600 select-none">[{idx + 1}]</span>
+                    <span className="leading-snug break-all">{sq.query}</span>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
-        ))}
+        )}
+
+        {/* Steps List */}
+        <div className="space-y-1.5">
+          {steps.map((step) => {
+            const isRunning = step.status === "running";
+            return (
+              <div
+                key={step.id}
+                className={`p-2 rounded text-xs transition-colors flex items-start gap-2 border ${
+                  isRunning
+                    ? "bg-[#181a22] border-amber-500/30 text-zinc-200"
+                    : step.status === "done"
+                    ? "bg-[#121418] border-transparent text-zinc-400"
+                    : "bg-transparent border-transparent text-zinc-600"
+                }`}
+              >
+                <StepStatusIcon status={step.status} />
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-[11px] leading-tight break-words">{step.label}</p>
+                  {step.detail && (
+                    <p className="mt-1 text-[11px] text-zinc-500 font-mono break-all">{step.detail}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </aside>
   );

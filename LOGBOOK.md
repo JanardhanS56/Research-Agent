@@ -43,3 +43,14 @@
 - **Context**: User explicitly requested running the research agent directly in the user terminal as well as having a web interface.
 - **Decision**: Implemented `bin/cli.ts` executed via `tsx` (`npm run cli` / `npm run research`). Features ANSI-styled stage outputs, token-by-token stdout report streaming, interactive prompt mode, query arg mode, zero-dependency `.env` parsing, and automatic disk persistence to `reports/report-<slug>-<timestamp>.md`.
 
+### ADR-007: De-AI Aesthetic Refactor & Technical Workstation UI
+- **Date**: 2026-10-24
+- **Status**: Accepted
+- **Context**: User provided a critique of generic AI design tells (purple-to-blue gradients, glowing background orbs, eyebrow badges with pulsing dots, emoji cards, pill buttons, uniform breathing animations, buzzword copy).
+- **Decision**: Redesigned UI into a technical research studio / workstation:
+  1. Palette: Deep graphite background (`#0b0c0e`), hairline neutral borders (`#252830`), high-contrast bone typography (`#f3f4f6`), and functional status badges. Eliminated all glowing orbs, rainbow gradient text, and glassmorphic blurs.
+  2. Components: Replaced cartoon emojis (`🧠`, `🔍`, `⚗️`) with precision SVGs; replaced pill buttons with crisp tactile buttons with keyboard shortcut badges (`Ctrl+Enter`).
+  3. Layout: Implemented an application top-bar with engine telemetry and a high-density split-pane workspace (Execution Trace & Investigation Brief).
+  4. Copy: Replaced generic AI buzzwords with grounded engineering terminology and realistic benchmark inquiry presets.
+
+
