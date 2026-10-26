@@ -3,13 +3,15 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { ResearchState } from "../page";
+import type { AgentStep, ResearchState } from "../page";
+import AILoadingState from "@/components/ui/ai-loading";
 
 interface Props {
   report: string;
   status: ResearchState["status"];
   error?: string;
   query: string;
+  steps?: AgentStep[];
 }
 
 function downloadMarkdown(content: string, query: string) {
@@ -27,7 +29,7 @@ function downloadMarkdown(content: string, query: string) {
   URL.revokeObjectURL(url);
 }
 
-export default function ReportViewer({ report, status, error, query }: Props) {
+export default function ReportViewer({ report, status, error, query, steps }: Props) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
@@ -55,20 +57,19 @@ export default function ReportViewer({ report, status, error, query }: Props) {
   }
 
   if (!report) {
+    const runningStep = steps?.find((s) => s.status === "running");
+    const completedCount = steps ? steps.filter((s) => s.status === "done").length : 0;
+    const totalCount = steps && steps.length > 0 ? steps.length : 1;
+    const calculatedProgress = steps && steps.length > 0
+      ? Math.round((completedCount / totalCount) * 100)
+      : undefined;
+
     return (
-      <div className="panel p-8 flex flex-col items-center justify-center min-h-[360px] text-center">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-2 h-2 rounded-sm bg-amber-400 animate-pulse" />
-          <span className="font-mono text-xs uppercase tracking-wider text-zinc-400">
-            Synthesizing Live Pipeline
-          </span>
-        </div>
-        <p className="text-sm text-zinc-300 max-w-sm mb-1">
-          Decomposing query, querying web indices, and compiling citations.
-        </p>
-        <p className="text-xs text-zinc-500 font-mono">
-          Model: nvidia/nemotron-3.5-bolt-e4b (Chain-of-Thought)
-        </p>
+      <div className="panel p-4 flex flex-col items-center justify-center min-h-[380px] bg-[#111318]/80 border-[#222530] backdrop-blur-sm">
+        <AILoadingState
+          customStatus={runningStep?.label}
+          customProgress={calculatedProgress}
+        />
       </div>
     );
   }

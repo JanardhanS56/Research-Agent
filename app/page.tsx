@@ -218,7 +218,7 @@ export default function Home() {
         />
 
         {/* Active Investigation Area */}
-        {state.status !== "idle" && (
+        {state.status !== "idle" ? (
           <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 pt-2">
             <AgentTimeline steps={state.steps} subQueries={state.subQueries} />
             <ReportViewer
@@ -226,7 +226,46 @@ export default function Home() {
               status={state.status}
               error={state.error}
               query={state.query}
+              steps={state.steps}
             />
+          </div>
+        ) : (
+          <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="p-4 rounded-xl border border-[#20232c] bg-[#111317]/60 hover:border-[#2e3340] transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-3">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              </div>
+              <h3 className="text-xs font-semibold text-zinc-200">1. Query Decomposition</h3>
+              <p className="mt-1 text-[11px] text-zinc-400 leading-relaxed">
+                Breaks complex research inquiries into a multi-vector matrix of targeted sub-questions.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl border border-[#20232c] bg-[#111317]/60 hover:border-[#2e3340] transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xs font-semibold text-zinc-200">2. Live Web Retrieval</h3>
+              <p className="mt-1 text-[11px] text-zinc-400 leading-relaxed">
+                Scrapes fresh web documents across search endpoints, filtering ads and noise.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl border border-[#20232c] bg-[#111317]/60 hover:border-[#2e3340] transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xs font-semibold text-zinc-200">3. Cited Synthesis</h3>
+              <p className="mt-1 text-[11px] text-zinc-400 leading-relaxed">
+                Compiles structured Markdown briefs with chain-of-thought evidence and explicit source citations.
+              </p>
+            </div>
           </div>
         )}
       </main>
