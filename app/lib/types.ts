@@ -79,3 +79,13 @@ export interface NvidiaRequestOptions {
   stream?: boolean;
   enable_thinking?: boolean;
 }
+
+// ─── Library Types ───────────────────────────────────────────────────────────
+export type {
+  SavedResearch,
+  ResearchTopic,
+  TopicPriority,
+  TopicStatus,
+  LibraryExportData,
+} from "./library";
+
