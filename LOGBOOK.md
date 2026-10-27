@@ -53,4 +53,14 @@
   3. Layout: Implemented an application top-bar with engine telemetry and a high-density split-pane workspace (Execution Trace & Investigation Brief).
   4. Copy: Replaced generic AI buzzwords with grounded engineering terminology and realistic benchmark inquiry presets.
 
+### ADR-008: Research Library & Investigation Backlog Architecture
+- **Date**: 2026-10-27
+- **Status**: Accepted
+- **Context**: User required the ability to save completed research briefs to a persistent library with search and tagging capabilities, as well as maintain an ideation/task backlog of topics to research later with one-click automated execution.
+- **Decision**:
+  1. Implemented client-side persistent storage layer (`app/lib/library.ts`) utilizing `localStorage` with in-memory test fallback, supporting `SavedResearch` and `ResearchTopic` schemas.
+  2. Built `LibraryView` component supporting full-text search, multi-tag filtering, sort orders (pinned first, recent, word count, alphabetical), reader modal with Markdown rendering, and JSON backup export/import.
+  3. Integrated "Save to Library" directly into `ReportViewer` with metadata tagging and personal note attachments.
+  4. Implemented Topics Backlog with priority badges (High, Medium, Low) and direct "Launch Research" dispatch that transitions seamlessly into active execution.
+
 
