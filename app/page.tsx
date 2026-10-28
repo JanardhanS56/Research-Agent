@@ -9,6 +9,8 @@ import ChatAgentView from "./components/ChatAgentView";
 import type { AgentEvent, SubQuery } from "./lib/types";
 import { getSavedResearches, getResearchTopics } from "./lib/library";
 import type { ResearchChatContext } from "./lib/chat-agent";
+import Footer from "./components/Footer";
+import CookieBanner from "./components/CookieBanner";
 
 export interface AgentStep {
   id: string;
@@ -393,6 +395,8 @@ export default function Home() {
           </>
         )}
       </main>
+      <Footer />
+      <CookieBanner />
     </div>
   );
 }
