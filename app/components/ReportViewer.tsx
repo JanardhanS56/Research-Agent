@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import type { AgentStep, ResearchState } from "../page";
 import AILoadingState from "@/components/ui/ai-loading";
 import { saveResearch, getSavedResearches, type SavedResearch } from "../lib/library";
+import { safeMarkdownComponents } from "../lib/markdown-security";
 
 interface Props {
   report: string;
@@ -301,7 +302,7 @@ export default function ReportViewer({
 
       {/* Document Content */}
       <div className="p-6 md:p-8 report-content">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
           {report}
         </ReactMarkdown>
         {isStreaming && <span className="terminal-cursor" />}

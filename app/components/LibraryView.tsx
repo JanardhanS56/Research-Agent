@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { safeMarkdownComponents } from "../lib/markdown-security";
 import {
   getSavedResearches,
   getResearchTopics,
@@ -884,7 +885,7 @@ export default function LibraryView({
 
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 report-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
                 {readingResearch.report}
               </ReactMarkdown>
             </div>
