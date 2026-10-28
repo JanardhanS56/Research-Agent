@@ -16,6 +16,7 @@ interface Props {
   subQueries?: Array<{ id: string; query: string }>;
   onSaved?: (item: SavedResearch) => void;
   onOpenLibrary?: () => void;
+  onChatWithReport?: (query: string, report: string) => void;
 }
 
 function downloadMarkdown(content: string, query: string) {
@@ -42,6 +43,7 @@ export default function ReportViewer({
   subQueries,
   onSaved,
   onOpenLibrary,
+  onChatWithReport,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -173,6 +175,23 @@ export default function ReportViewer({
             </svg>
             {isSaved ? "In Library" : "Save to Library"}
           </button>
+
+          {onChatWithReport && (
+            <button
+              type="button"
+              onClick={() => onChatWithReport(query, report)}
+              disabled={isStreaming}
+              title="Open in Chat Agent to ask follow-up questions grounded in this report"
+              className={`px-2.5 py-1 rounded border border-indigo-700/50 bg-indigo-950/25 hover:bg-indigo-950/45 text-indigo-300 text-xs font-mono transition-colors flex items-center gap-1.5 ${
+                isStreaming ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              Chat with Report
+            </button>
+          )}
 
           {onOpenLibrary && (
             <button
