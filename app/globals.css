@@ -177,16 +177,40 @@ html, body {
   border-collapse: collapse;
   margin: 1rem 0;
   font-size: 0.875rem;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .report-content th, .report-content td {
   border: 1px solid var(--border-subtle);
   padding: 8px 12px;
   text-align: left;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .report-content table {
+    display: table;
+  }
+  .report-content th, .report-content td {
+    white-space: normal;
+  }
 }
 
 .report-content th {
   background: var(--bg-surface-elevated);
   color: #f3f4f6;
   font-weight: 600;
+}
+
+/* Mobile Touch Target and Smooth Scrolling Enhancements */
+@media (max-width: 640px) {
+  button, a {
+    min-height: 36px;
+    touch-action: manipulation;
+  }
+  .report-content {
+    font-size: 0.9rem;
+  }
 }
