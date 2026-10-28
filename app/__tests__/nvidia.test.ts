@@ -34,20 +34,23 @@ describe("nvidia client", () => {
 
 describe("chatJSON", () => {
   it("returns fallback on invalid JSON", async () => {
-    // Mock the chat function to return invalid JSON
-    vi.doMock("../lib/nvidia", async (importOriginal) => {
-      const mod = await importOriginal<typeof import("../lib/nvidia")>();
-      return {
-        ...mod,
-        chat: vi.fn().mockResolvedValue("not valid json at all"),
-        chatJSON: mod.chatJSON,
-      };
-    });
+    const originalFetch = globalThis.fetch;
+    const savedKey = process.env.NVIDIA_API_KEY;
+    process.env.NVIDIA_API_KEY = "test-api-key";
 
-    // Re-import to get fresh module with mock
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: "not valid json at all" } }],
+      }),
+    } as unknown as Response);
+
     const { chatJSON } = await import("../lib/nvidia");
-    // chatJSON internally calls chat; since we can't fully mock module chain here,
-    // just verify the function signature is correct
-    expect(typeof chatJSON).toBe("function");
+    const fallbackVal = [{ id: "fallback" }];
+    const result = await chatJSON([{ role: "user", content: "test" }], fallbackVal);
+    expect(result).toEqual(fallbackVal);
+
+    globalThis.fetch = originalFetch;
+    process.env.NVIDIA_API_KEY = savedKey;
   });
 });

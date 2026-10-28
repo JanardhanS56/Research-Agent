@@ -10,6 +10,7 @@ import {
   type ResearchTopic,
 } from "../lib/library";
 import type { ResearchChatContext } from "../lib/chat-agent";
+import { safeMarkdownComponents } from "../lib/markdown-security";
 
 export interface ChatMessage {
   id: string;
@@ -435,7 +436,7 @@ Currently in **General Assistant Mode**. You can ask any question, or click **"A
             >
               {msg.role === "assistant" ? (
                 msg.content ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
                     {msg.content}
                   </ReactMarkdown>
                 ) : (
@@ -707,7 +708,7 @@ Currently in **General Assistant Mode**. You can ask any question, or click **"A
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8 report-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
                 {context.report}
               </ReactMarkdown>
             </div>
