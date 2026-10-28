@@ -16,6 +16,8 @@ import type {
   Synthesis,
 } from "@/lib/types";
 
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -25,11 +27,53 @@ function sse(event: AgentEvent): string {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json() as { query?: string };
-  const query = body.query?.trim();
+  // Rate limiting check: 5 research runs per minute per IP
+  const clientIp = getClientIp(req.headers);
+  const rateLimit = checkRateLimit(clientIp, "research", 5, 60_000);
+
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: `Rate limit reached. Too many requests from this IP. Please wait ${rateLimit.resetSec} seconds.`,
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(rateLimit.resetSec),
+        },
+      }
+    );
+  }
+
+  // Safe JSON body parsing
+  let body: { query?: string };
+  try {
+    body = (await req.json()) as { query?: string };
+  } catch {
+    return new Response(JSON.stringify({ error: "Malformed JSON payload" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const query = body?.query?.trim();
 
   if (!query) {
-    return new Response("Missing query", { status: 400 });
+    return new Response(JSON.stringify({ error: "Missing query field" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (query.length > 1000) {
+    return new Response(
+      JSON.stringify({ error: "Query exceeds maximum limit of 1000 characters" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const encoder = new TextEncoder();
