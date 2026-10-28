@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { chatStream } from "@/lib/nvidia";
 import { prepareChatMessages, type ResearchChatContext } from "@/lib/chat-agent";
 
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, validateOrigin } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +13,14 @@ export interface ChatApiRequestBody {
 }
 
 export async function POST(req: NextRequest) {
+  // Validate Origin header on POST requests to reject unauthorized cross-origin execution
+  if (!validateOrigin(req.headers)) {
+    return new Response(JSON.stringify({ error: "Cross-origin request rejected" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   // Rate limiting check: 30 chat messages per minute per IP
   const clientIp = getClientIp(req.headers);
   const rateLimit = checkRateLimit(clientIp, "chat", 30, 60_000);
@@ -114,8 +122,12 @@ export async function POST(req: NextRequest) {
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
         } catch (streamErr) {
-          const errMsg = streamErr instanceof Error ? streamErr.message : "Error streaming response";
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errMsg })}\n\n`));
+          console.error("[Chat Stream Error]", streamErr);
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ error: "Inference stream was interrupted. Please retry." })}\n\n`
+            )
+          );
           controller.close();
         }
       },
@@ -129,8 +141,8 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return new Response(JSON.stringify({ error: message }), {
+    console.error("[Chat API Handler Error]", err);
+    return new Response(JSON.stringify({ error: "Unable to process chat request." }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

@@ -16,7 +16,7 @@ import type {
   Synthesis,
 } from "@/lib/types";
 
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, validateOrigin } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +27,14 @@ function sse(event: AgentEvent): string {
 }
 
 export async function POST(req: NextRequest) {
+  // Validate Origin header on POST requests to reject unauthorized cross-origin execution
+  if (!validateOrigin(req.headers)) {
+    return new Response(JSON.stringify({ error: "Cross-origin request rejected" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   // Rate limiting check: 5 research runs per minute per IP
   const clientIp = getClientIp(req.headers);
   const rateLimit = checkRateLimit(clientIp, "research", 5, 60_000);
@@ -118,9 +126,12 @@ export async function POST(req: NextRequest) {
         const totalCitations = syntheses.flatMap((s) => s.citations).length;
         send({ kind: "done", payload: { totalCitations } });
       } catch (err) {
+        console.error("[Research Pipeline Error]", err);
         send({
           kind: "error",
-          payload: { message: err instanceof Error ? err.message : String(err) },
+          payload: {
+            message: "An error occurred during synthesis. Please verify your query or retry in a moment.",
+          },
         });
       } finally {
         controller.close();

@@ -95,6 +95,26 @@ export function getClientIp(headers: Headers): string {
   return "127.0.0.1";
 }
 
+/**
+ * Validates the Origin header against the Host header to protect against
+ * cross-origin abuse on streaming POST routes.
+ */
+export function validateOrigin(headers: Headers): boolean {
+  const origin = headers.get("origin");
+  if (!origin) return true;
+  try {
+    const originUrl = new URL(origin);
+    const host = headers.get("host") || "";
+    // If host header is present, origin host must match
+    if (host && originUrl.host.toLowerCase() !== host.toLowerCase()) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Clears all rate limits (primarily for unit testing) */
 export function resetRateLimits() {
   records.clear();
