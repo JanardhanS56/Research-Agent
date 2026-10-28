@@ -93,5 +93,14 @@
   3. **Prompt Injection & Exfiltration Defense**: Enclosed untrusted web page text in explicit `<untrusted_source>` XML delimiters in `synthesizer.ts`. Created `safeMarkdownComponents` in `app/lib/markdown-security.tsx` disabling external markdown image rendering to prevent tracking pixels and silent data exfiltration.
   4. **OWASP Security Headers & Error Masking**: Configured `next.config.ts` with `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy`. Added `validateOrigin` cross-origin enforcement and sanitized server error payloads to prevent internal telemetry disclosure.
 
-
-
+### ADR-012: Platform Polish, Standard Web Infrastructure & Mobile Responsive Hardening
+- **Date**: 2026-10-28
+- **Status**: Accepted
+- **Context**: Production web applications require defensive standard infrastructure: custom error boundaries (404 and global runtime errors), privacy policy, cookie/storage disclosure, technical manual, features showcase, and robust mobile device responsiveness.
+- **Decision**:
+  1. **Custom Error Boundaries (`app/not-found.tsx`, `app/error.tsx`)**: Created workstation-themed 404 page and global React error boundary. Masked low-level stack traces and runtime internals to prevent diagnostic leakage to adversaries.
+  2. **Legal & Privacy Suite (`app/privacy/page.tsx`, `app/terms/page.tsx`)**: Documented the platform's zero-telemetry architecture, client-side `localStorage` data sovereignty, NVIDIA inference bounds, and terms of autonomous AI brief generation.
+  3. **Cookie Transparency Banner & Footer (`app/components/CookieBanner.tsx`, `app/components/Footer.tsx`)**: Implemented non-intrusive cookie/localStorage transparency banner with persistent user acknowledgment (`research_agent_cookie_consent_v1`) and unified platform footer linking to legal docs and manuals.
+  4. **Technical User Manual & Features Showcase (`app/manual/page.tsx`, `app/features/page.tsx`)**: Built comprehensive operational handbook detailing multi-agent pipeline steps, CLI flags, grounded Nemotron chat protocols, keyboard shortcuts, and architectural specification matrix.
+  5. **Mobile Viewport Hardening (`app/layout.tsx`, `app/page.tsx`, `app/globals.css`)**: Added Next.js `Viewport` specification (`device-width`, `initialScale: 1`, `themeColor: #0b0c0e`), touch target sizing (>= 36px), table horizontal scroll containers (`-webkit-overflow-scrolling: touch`), and fluid-wrapping workstation navigation.
+  6. **Adversarial Infiltrator Audit**: Verified all newly added pages are protected against DOM XSS (no raw HTML injection), open redirects (relative Next.js `Link` routing), and unauthorized origin POSTs. Validated with 41 passing automated test suites and zero TypeScript compiler warnings.
