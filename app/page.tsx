@@ -5,8 +5,10 @@ import QueryForm from "./components/QueryForm";
 import AgentTimeline from "./components/AgentTimeline";
 import ReportViewer from "./components/ReportViewer";
 import LibraryView from "./components/LibraryView";
+import ChatAgentView from "./components/ChatAgentView";
 import type { AgentEvent, SubQuery } from "./lib/types";
 import { getSavedResearches, getResearchTopics } from "./lib/library";
+import type { ResearchChatContext } from "./lib/chat-agent";
 
 export interface AgentStep {
   id: string;
@@ -26,8 +28,9 @@ export interface ResearchState {
 }
 
 export default function Home() {
-  const [currentView, setCurrentView] = useState<"workspace" | "library">("workspace");
+  const [currentView, setCurrentView] = useState<"workspace" | "chat" | "library">("workspace");
   const [libraryCounts, setLibraryCounts] = useState({ saved: 0, topics: 0 });
+  const [chatContext, setChatContext] = useState<ResearchChatContext | null>(null);
 
   const [state, setState] = useState<ResearchState>({
     status: "idle",
@@ -212,6 +215,12 @@ export default function Home() {
     handleSubmit(topicQuery);
   }
 
+  // Open Chat Agent grounded in a specific research report
+  function handleOpenChatWithResearch(query: string, report: string) {
+    setChatContext({ query, report });
+    setCurrentView("chat");
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0c0e] text-zinc-100 font-sans">
       {/* Top Application Bar */}
@@ -240,6 +249,24 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Workspace
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCurrentView("chat")}
+                className={`px-3 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 ${
+                  currentView === "chat"
+                    ? "bg-[#1d202a] text-zinc-100 shadow-sm font-medium"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Chat Agent
+                {chatContext && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" title={`Anchored: ${chatContext.query}`} />
+                )}
               </button>
 
               <button
@@ -282,6 +309,13 @@ export default function Home() {
             onLoadResearchToWorkspace={handleLoadResearchToWorkspace}
             onLaunchTopicResearch={handleLaunchTopicResearch}
             onBackToWorkspace={() => setCurrentView("workspace")}
+            onChatWithResearch={handleOpenChatWithResearch}
+          />
+        ) : currentView === "chat" ? (
+          <ChatAgentView
+            initialContext={chatContext}
+            onContextChange={setChatContext}
+            onOpenLibrary={() => setCurrentView("library")}
           />
         ) : (
           <>
@@ -314,6 +348,7 @@ export default function Home() {
                   subQueries={state.subQueries}
                   onSaved={refreshLibraryCounts}
                   onOpenLibrary={() => setCurrentView("library")}
+                  onChatWithReport={handleOpenChatWithResearch}
                 />
               </div>
             ) : (

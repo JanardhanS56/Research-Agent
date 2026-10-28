@@ -26,12 +26,14 @@ interface LibraryViewProps {
   onLoadResearchToWorkspace: (query: string, report: string) => void;
   onLaunchTopicResearch: (topicQuery: string) => void;
   onBackToWorkspace: () => void;
+  onChatWithResearch?: (query: string, report: string) => void;
 }
 
 export default function LibraryView({
   onLoadResearchToWorkspace,
   onLaunchTopicResearch,
   onBackToWorkspace,
+  onChatWithResearch,
 }: LibraryViewProps) {
   const [activeTab, setActiveTab] = useState<"researches" | "topics">("researches");
 
@@ -520,6 +522,20 @@ export default function LibraryView({
                         Load in Workspace
                       </button>
 
+                      {onChatWithResearch && (
+                        <button
+                          type="button"
+                          onClick={() => onChatWithResearch(item.query, item.report)}
+                          title="Open in Chat Agent to explore follow-up questions"
+                          className="px-2.5 py-1 rounded border border-indigo-700/50 bg-indigo-950/25 hover:bg-indigo-950/45 text-indigo-300 text-xs font-mono transition-colors flex items-center gap-1"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                          </svg>
+                          Chat
+                        </button>
+                      )}
+
                       <button
                         type="button"
                         onClick={() => handleOpenEditResearch(item)}
@@ -834,6 +850,21 @@ export default function LibraryView({
                 >
                   Load in Workspace
                 </button>
+                {onChatWithResearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChatWithResearch(readingResearch.query, readingResearch.report);
+                      setReadingResearch(null);
+                    }}
+                    className="px-2.5 py-1 rounded border border-indigo-700/50 bg-indigo-950/25 hover:bg-indigo-950/45 text-indigo-300 text-xs font-mono transition-colors flex items-center gap-1.5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    Chat with Report
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => downloadMarkdownReport(readingResearch.report, readingResearch.query)}
